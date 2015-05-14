@@ -86,7 +86,7 @@ function build-root {
 
     cd root
     git reset --hard HEAD
-    git clean -fdx
+    git clean -fdx || true
     git checkout $ROOT
     git apply ../root.patch || true
     ./configure $options --gminimal --enable-asimage --enable-x11 \
