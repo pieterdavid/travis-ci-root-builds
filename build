@@ -1,0 +1,120 @@
+#!/bin/bash
+
+debug=false
+tmva=true
+while [[ $# > 0 ]]
+do
+key="$1"
+case $key in
+    --debug)
+    debug=true
+    shift
+    ;;
+    --no-tmva)
+    tmva=false
+    shift
+    ;;
+    *)
+    echo "unknown option: ${key}"
+    exit 1
+    ;;
+esac
+shift
+done
+
+set -e
+
+PYTHON_VERSIONS="2.6 2.7 3.3 3.4"
+
+VAGRANT=/vagrant
+BUILD=builds
+ARCH=`uname -m`
+GCC_VERSION=`gcc -dumpversion`
+NPROC=`nproc`
+
+cd $VAGRANT
+
+if [ ! -e $BUILD ]; then
+    mkdir -p $BUILD
+fi
+
+if [ ! -e tags.lst ]; then
+    echo "list the tags, one per line in tags.lst"
+    exit 1
+fi
+
+if [ ! -e root ]; then
+    git clone http://root.cern.ch/git/root.git || exit 1
+fi
+
+
+function build-root {
+    ROOT=$1
+    ROOT_NICE_VERSION=${ROOT/v/}
+    ROOT_NICE_VERSION=${ROOT_NICE_VERSION//-/.}
+    PYTHON_MAJOR_VERSION=`python -c "from __future__ import print_function; import distutils.sysconfig; print(distutils.sysconfig.get_python_version())"`
+    BUNDLE=ROOT-${ROOT_NICE_VERSION}_Python-${PYTHON_MAJOR_VERSION}_GCC-${GCC_VERSION}_${ARCH}
+    
+    options=""
+    if [ "$tmva" = true ]; then
+        options+=" --enable-tmva"
+    else
+        BUNDLE+="_notmva"
+    fi
+    if [ "$debug" = true ]; then
+        options+=" --build=debug"
+        BUNDLE+="_debug"
+    fi
+    
+    if [ -e ${BUILD}/${BUNDLE}.tar.gz ]; then
+        echo "${BUILD}/${BUNDLE}.tar.gz already exists"
+        continue
+    fi
+    
+    if [ -e ${BUILD}/${BUNDLE} ]; then
+        echo "${BUILD}/${BUNDLE} already exists"
+        continue
+    fi
+
+    PYTHON_LIB=`python -c "from __future__ import print_function; import distutils.sysconfig; import os; print(os.path.dirname(distutils.sysconfig.get_python_lib(standard_lib=True)))"`
+    PYTHON_INCLUDE=`python -c "from __future__ import print_function; import distutils.sysconfig; import os; print(os.path.dirname(distutils.sysconfig.get_python_inc()))"`/python${PYTHON_MAJOR_VERSION}
+    export LD_LIBRARY_PATH=${PYTHON_LIB}
+
+    echo "Python lib: ${PYTHON_LIB}"
+    echo "Python inc: ${PYTHON_INCLUDE}"
+    echo "Building $ROOT ..."
+
+    cd root
+    git reset --hard HEAD
+    git clean -fdx
+    git checkout $ROOT
+    git apply ../root.patch || true
+    ./configure $options --gminimal --enable-asimage --enable-x11 \
+        --enable-python --enable-roofit --enable-xml --enable-minuit2 \
+        --disable-xrootd --fail-on-missing \
+        --with-python-libdir=${PYTHON_LIB} --with-python-incdir=${PYTHON_INCLUDE} || exit 1
+    make -j ${NPROC} || exit 1
+    export ROOTSYS=${BUNDLE}
+    make DESTDIR=../$BUILD/ install || exit 1
+    cd ../$BUILD
+    tar zcvf ${BUNDLE}.tar.gz ${BUNDLE}
+    cd ..
+}
+
+
+# build ROOTs
+while read ROOT;
+do
+    if [[ $ROOT == \#* ]]; then
+        continue
+    fi
+    for PYTHON in $PYTHON_VERSIONS; do
+        echo "Setting up Python-${PYTHON}"
+        # Create a virtualenv and work within it
+        virtualenv -p /usr/bin/python${PYTHON} .env
+        . .env/bin/activate
+        build-root $ROOT
+        # Deactivate the virtualenv
+        deactivate
+    done
+done < tags.lst
