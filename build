@@ -26,20 +26,18 @@ set -e
 
 PYTHON_VERSIONS="2.7 3.4"
 
-VAGRANT=/vagrant
-BUILD=builds
+BUILD=/vagrant/builds
+TAGS=/vagrant/tags.lst
 ARCH=`uname -m`
 GCC_VERSION=`gcc -dumpversion`
 NPROC=`nproc`
 
-cd $VAGRANT
-
-if [ ! -e $BUILD ]; then
-    mkdir -p $BUILD
+if [ ! -e builds ]; then
+    mkdir -p builds
 fi
 
-if [ ! -e tags.lst ]; then
-    echo "list the tags, one per line in tags.lst"
+if [ ! -e ${TAGS} ]; then
+    echo "list the tags, one per line in ${TAGS}"
     exit 1
 fi
 
@@ -71,11 +69,6 @@ function build-root {
         continue
     fi
     
-    if [ -e ${BUILD}/${BUNDLE} ]; then
-        echo "${BUILD}/${BUNDLE} already exists"
-        continue
-    fi
-
     PYTHON_LIB=`python -c "from __future__ import print_function; import distutils.sysconfig; import os; print(os.path.dirname(distutils.sysconfig.get_python_lib(standard_lib=True)))"`
     PYTHON_INCLUDE=`python -c "from __future__ import print_function; import distutils.sysconfig; import os; print(os.path.dirname(distutils.sysconfig.get_python_inc()))"`/python${PYTHON_MAJOR_VERSION}
     export LD_LIBRARY_PATH=${PYTHON_LIB}
@@ -95,9 +88,10 @@ function build-root {
         --with-python-libdir=${PYTHON_LIB} --with-python-incdir=${PYTHON_INCLUDE} || exit 1
     make -j ${NPROC} || exit 1
     export ROOTSYS=${BUNDLE}
-    make DESTDIR=../$BUILD/ install || exit 1
-    cd ../$BUILD
+    make DESTDIR=../builds/ install || exit 1
+    cd ../builds
     tar zcvf ${BUNDLE}.tar.gz ${BUNDLE}
+    cp ${BUNDLE}.tar.gz ${BUILD}
     cd ..
 }
 
@@ -117,4 +111,4 @@ do
         # Deactivate the virtualenv
         deactivate
     done
-done < tags.lst
+done < ${TAGS}
