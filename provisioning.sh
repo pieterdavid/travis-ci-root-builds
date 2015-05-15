@@ -47,10 +47,7 @@ sudo apt-get -y install python3.4 python3.4-dev
 sudo ln -s /usr/lib/x86_64-linux-gnu/libpython3.3m.so /usr/lib/x86_64-linux-gnu/libpython3.3.so
 sudo ln -s /usr/lib/x86_64-linux-gnu/libpython3.4m.so /usr/lib/x86_64-linux-gnu/libpython3.4.so
 
-# Install virtualenv to manage Python environments
-curl -O https://pypi.python.org/packages/source/v/virtualenv/virtualenv-12.0.5.tar.gz
-tar xzf virtualenv-12.0.5.tar.gz
-cd virtualenv-12.0.5
-sudo python setup.py install
-cd ..
-rm -rf virtualenv-12.0.5 virtualenv-12.0.5.tar.gz
+# Install Python packages
+sudo apt-get install python-pip python-nose
+sudo pip install setuptools
+sudo pip install virtualenv
