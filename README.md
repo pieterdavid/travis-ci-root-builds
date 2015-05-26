@@ -52,7 +52,7 @@ See the
 [`rootpy`](https://github.com/rootpy/rootpy)
 repository and its
 [`.travis.yml`](https://github.com/rootpy/rootpy/blob/master/.travis.yml)
-for an example set up.
+for an example.
 
 ### Availability
 
