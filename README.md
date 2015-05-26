@@ -61,8 +61,7 @@ There are publicly available builds on
 but if you strongly depend on the availability of such builds, hosting them
 elsewhere might be a good idea.
 
-As of the last commit date on this [README](README.md), the available builds
-are given in the table below.
+The available builds are listed in the tables below:
 
 #### Python 2
 
