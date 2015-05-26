@@ -48,6 +48,7 @@ sudo ln -s /usr/lib/x86_64-linux-gnu/libpython3.3m.so /usr/lib/x86_64-linux-gnu/
 sudo ln -s /usr/lib/x86_64-linux-gnu/libpython3.4m.so /usr/lib/x86_64-linux-gnu/libpython3.4.so
 
 # Install Python packages
-sudo apt-get install python-pip python-nose
-sudo pip install setuptools
+wget https://bootstrap.pypa.io/get-pip.py
+sudo python get-pip.py
 sudo pip install virtualenv
+sudo pip install nose
