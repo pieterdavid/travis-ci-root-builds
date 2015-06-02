@@ -11,7 +11,7 @@ sudo apt-get -y install gfortran libssl-dev libpcre3-dev \
   libmysqlclient-dev libfftw3-dev cfitsio-dev \
   graphviz-dev libavahi-compat-libdnssd-dev \
   libldap2-dev python-dev libxml2-dev libkrb5-dev \
-  libgsl0-dev libqt4-dev
+  libgsl0-dev libqt4-dev libpng-dev
 
 # Get GCC 4.8 for ROOT 6
 # http://ubuntuhandbook.org/index.php/2013/08/install-gcc-4-8-via-ppa-in-ubuntu-12-04-13-04/
