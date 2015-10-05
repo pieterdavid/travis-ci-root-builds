@@ -26,16 +26,16 @@ sudo update-alternatives --config gcc
 sudo update-alternatives --config g++
 
 # Install a modern CMake (ROOT requires >= 2.8.8)
-curl -O http://www.cmake.org/files/v3.1/cmake-3.1.2.tar.gz
-tar xf cmake-3.1.2.tar.gz
-mkdir cmake-3.1.2/_build
-cd cmake-3.1.2/_build
-cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
-make
-sudo make install
-sudo ldconfig
-cd ../..
-rm -rf cmake-3.1.2 cmake-3.1.2.tar.gz
+#curl -O http://www.cmake.org/files/v3.1/cmake-3.1.2.tar.gz
+#tar xf cmake-3.1.2.tar.gz
+#mkdir cmake-3.1.2/_build
+#cd cmake-3.1.2/_build
+#cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+#make
+#sudo make install
+#sudo ldconfig
+#cd ../..
+#rm -rf cmake-3.1.2 cmake-3.1.2.tar.gz
 
 # Add deadsnakes PPA for Python 2.6 and Python 3.3+
 sudo add-apt-repository -y ppa:fkrull/deadsnakes
