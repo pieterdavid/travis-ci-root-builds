@@ -32,6 +32,14 @@ ARCH=`uname -m`
 GCC_VERSION=`gcc -dumpversion`
 NPROC=`nproc`
 
+if [ ! -e "${BUILD}" ]; then
+    mkdir -p "${BUILD}"
+fi
+
+##
+mkdir -p /vagrant/workdir
+cd /vagrant/workdir
+
 if [ ! -e builds ]; then
     mkdir -p builds
 fi
@@ -41,8 +49,8 @@ if [ ! -e ${TAGS} ]; then
     exit 1
 fi
 
-if [ ! -e root ]; then
-    git clone http://root.cern.ch/git/root.git || exit 1
+if [ ! -e root-src ]; then
+    git clone http://root.cern.ch/git/root.git root-src || exit 1
 fi
 
 
@@ -64,35 +72,31 @@ function build-root {
         BUNDLE+="_debug"
     fi
     
-    if [ -e ${BUILD}/${BUNDLE}.tar.gz ]; then
-        echo "${BUILD}/${BUNDLE}.tar.gz already exists"
+    if [ -e ${BUILD}/${BUNDLE}.tar.xz ]; then
+        echo "${BUILD}/${BUNDLE}.tar.xz already exists"
         continue
     fi
     
     PYTHON_LIB=`python -c "from __future__ import print_function; import distutils.sysconfig; import os; print(os.path.dirname(distutils.sysconfig.get_python_lib(standard_lib=True)))"`
-    PYTHON_INCLUDE=`python -c "from __future__ import print_function; import distutils.sysconfig; import os; print(os.path.dirname(distutils.sysconfig.get_python_inc()))"`/python${PYTHON_MAJOR_VERSION}
     export LD_LIBRARY_PATH=${PYTHON_LIB}
 
     echo "Python lib: ${PYTHON_LIB}"
-    echo "Python inc: ${PYTHON_INCLUDE}"
     echo "Building $ROOT ..."
 
-    cd root
+    cd root-src
     git reset --hard HEAD
     git clean -fdx || true
     git checkout $ROOT
-    git apply ../root.patch || true
-    ./configure $options --gminimal --enable-asimage --enable-x11 \
-        --enable-python --enable-roofit --enable-xml --enable-minuit2 \
-        --disable-xrootd --fail-on-missing \
-        --with-python-libdir=${PYTHON_LIB} --with-python-incdir=${PYTHON_INCLUDE} || exit 1
-    make -j ${NPROC} || exit 1
+    mkdir _build
+    cd _build
+    cmake .. -Dcxx11=ON -Dgminimal=ON -Dasimage=ON -Dx11=ON -Dpython=ON -Droofit=ON -Dxml=ON -Dtmva=ON -Dminuit2=ON -Dxrootd=OFF -G Ninja -DCMAKE_INSTALL_PREFIX="" || exit 1
+    ninja -j3 || exit 1
     export ROOTSYS=${BUNDLE}
-    make DESTDIR=../builds/ install || exit 1
-    cd ../builds
-    tar zcvf ${BUNDLE}.tar.gz ${BUNDLE}
-    cp ${BUNDLE}.tar.gz ${BUILD}
-    cd ..
+    DESTDIR="/vagrant/workdir/builds/${BUNDLE}" ninja install || exit 1
+    cd ../../builds
+    tar cJvf ${BUNDLE}.tar.xz ${BUNDLE}
+    cp ${BUNDLE}.tar.xz ${BUILD}
+    cd ../..
 }
 
 

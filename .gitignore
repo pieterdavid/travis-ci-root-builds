@@ -3,3 +3,4 @@ root
 .vagrant
 .env
 *.tar.gz
+workdir

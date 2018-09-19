@@ -1,7 +1,8 @@
 # Travis CI ROOT builds
 
 Scripts to build [ROOT](http://root.cern.ch/) distributions for use on
-[Travis CI](https://travis-ci.org/).
+[Travis CI](https://travis-ci.org/), adapted for Ubuntu 14.04 and building
+inside a docker container.
 
 ## Motivation
 
@@ -16,32 +17,37 @@ To use the ROOT distributions in your Travis CI tests, see the [Usage](#usage)
 section.
 
 [Vagrant](http://www.vagrantup.com/) and
-[VirtualBox](https://www.virtualbox.org/) are required to build the ROOT
-distributions supported by the repository. These are used to run a
-[Ubuntu](http://www.ubuntu.com/) 12.04 LTS Server Edition 64 bit distribution,
-the [same OS](http://docs.travis-ci.com/user/ci-environment/#CI-environment-OS)
+[VirtualBox](https://www.virtualbox.org/) (or [Docker](https://www.docker.com/))
+are required to build the ROOT distributions supported by the repository.
+These are used to run a [Ubuntu](http://www.ubuntu.com/) 14.04 LTS Server
+Edition 64 bit distribution, the
+[same OS](http://docs.travis-ci.com/user/ci-environment/#CI-environment-OS)
 used on the Travis CI VMs.
 
 To set up the VM, clone this repository and provision.
 
 ```bash
-$ git clone https://github.com/alexpearce/travis-ci-root-builds.git
-$ cd travis-ci-root-builds
-$ vagrant up --provision
+% git clone https://github.com/alexpearce/travis-ci-root-builds.git
+% cd travis-ci-root-builds
+% vagrant up --provider=docker
+% vagrant docker-exec -it -- /vagrant/provisioning.sh
 ```
 
-To build the ROOT distributions, SSH in to the VM and source the build script.
+To build the ROOT distributions, source the build script inside the container
 
 ```bash
-$ vagrant ssh
-# Now on the Vagrant guest machine
-$ . /vagrant/build
+% vagrant docker-exec -it -- /vagrant/build
 ```
 
 Each build can take a significant amount of time, upwards of 30 minutes.
 
-A tarball for each build will be created in the `/vagrant` folder, which in a
-standard Vagrant install is shared with the host machine.
+A tarball for each build will be created in the `/vagrant/builds/` folder,
+which in a standard Vagrant install is shared with the host machine.
+
+The ROOT and python versions to perform a build for can be set in
+[`tags.lst`](tags.lst) and [`build`](build#L27), respectively.
+Python versions other than 2.7 and 3.4 will also require adjustments to the
+[provision](provisioning.sh) script.
 
 ## Usage
 
@@ -53,45 +59,3 @@ See the
 repository and its
 [`.travis.yml`](https://github.com/rootpy/rootpy/blob/master/.travis.yml)
 for an example.
-
-### Availability
-
-There are publicly available builds on
-[Sourceforge](https://sourceforge.net/projects/travis-ci-root-builds/files/),
-but if you strongly depend on the availability of such builds, hosting them
-elsewhere might be a good idea.
-
-The available builds are listed in the tables below:
-
-#### Python 2
-
--            | Python 2.6                            | Python 2.7
--------------|---------------------------------------|----------------------------------------
-ROOT 5.34.19 | [`ROOT-5.34.19_Python-2.6.tar.gz`][1] | [`ROOT-5.34.19_Python-2.7.tar.gz`][2]
-ROOT 5.34.25 | [`ROOT-5.34.25_Python-2.6.tar.gz`][5] | [`ROOT-5.34.25_Python-2.7.tar.gz`][6]
-ROOT 6.00.02 | [`ROOT-6.00.02_Python-2.6.tar.gz`][3] | [`ROOT-6.00.02_Python-2.7.tar.gz`][4]
-ROOT 6.02.04 | [`ROOT-6.02.04_Python-2.6.tar.gz`][7] | [`ROOT-6.02.04_Python-2.7.tar.gz`][8]
-ROOT 6.03.02 | [`ROOT-6.03.02_Python-2.6.tar.gz`][9] | [`ROOT-6.03.02_Python-2.7.tar.gz`][10]
-
-[1]: http://downloads.sourceforge.net/project/travis-ci-root-builds/ROOT-5.34.19_Python-2.6.tar.gz
-[2]: http://downloads.sourceforge.net/project/travis-ci-root-builds/ROOT-5.34.19_Python-2.7.tar.gz
-[3]: http://downloads.sourceforge.net/project/travis-ci-root-builds/ROOT-6.00.02_Python-2.6.tar.gz
-[4]: http://downloads.sourceforge.net/project/travis-ci-root-builds/ROOT-6.00.02_Python-2.7.tar.gz
-[5]: http://downloads.sourceforge.net/project/travis-ci-root-builds/ROOT-5.34.25_Python-2.6.tar.gz
-[6]: http://downloads.sourceforge.net/project/travis-ci-root-builds/ROOT-5.34.25_Python-2.7.tar.gz
-[7]: http://downloads.sourceforge.net/project/travis-ci-root-builds/ROOT-6.02.04_Python-2.6.tar.gz
-[8]: http://downloads.sourceforge.net/project/travis-ci-root-builds/ROOT-6.02.04_Python-2.7.tar.gz
-[9]: http://downloads.sourceforge.net/project/travis-ci-root-builds/ROOT-6.03.02_Python-2.6.tar.gz
-[10]: http://downloads.sourceforge.net/project/travis-ci-root-builds/ROOT-6.03.02_Python-2.7.tar.gz
-
-#### Python 3
-
--            | Python 3.3                             | Python 3.4
--------------|----------------------------------------|----------------------------------------
-ROOT 5.34.25 | [`ROOT-5.34.25_Python-3.3.tar.gz`][11] | [`ROOT-5.34.25_Python-3.4.tar.gz`][12]
-ROOT 6.03.02 | [`ROOT-6.03.02_Python-3.3.tar.gz`][13] | [`ROOT-6.03.02_Python-3.4.tar.gz`][14]
-
-[11]: http://downloads.sourceforge.net/project/travis-ci-root-builds/ROOT-5.34.25_Python-3.3.tar.gz
-[12]: http://downloads.sourceforge.net/project/travis-ci-root-builds/ROOT-5.34.25_Python-3.4.tar.gz
-[13]: http://downloads.sourceforge.net/project/travis-ci-root-builds/ROOT-6.03.02_Python-3.3.tar.gz
-[14]: http://downloads.sourceforge.net/project/travis-ci-root-builds/ROOT-6.03.02_Python-3.4.tar.gz
